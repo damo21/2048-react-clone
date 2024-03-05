@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 function App() {
   const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
   const [gameArray, setGameArray] = useState<number[]>([
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 4, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ]);
   const [score, setScore] = useState<number>(0);
-  const [lastKey, setLastKey] = useState<string>("");
+  const [haveAnyMerged, setHaveAnyMerged] = useState<boolean>(false);
 
   useEffect(() => {
     if (!hasGameStarted) {
@@ -20,14 +20,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [gameArray]);
-
-  useEffect(() => {
     const latestScore: number = gameArray.reduce(
       (accumulator: number, currentValue: number) => accumulator + currentValue,
       0
@@ -37,88 +29,61 @@ function App() {
     }
   }, [gameArray]);
 
-  const handleKeyDown = async (event: KeyboardEvent) => {
-
-    console.log(event.key);
-    console.log(lastKey);
-
-    if (event.key === lastKey) return;
-
-    switch (event.key) {
-      case "ArrowLeft":
-        await handleLeftArrow();
-        // handleLeftArrow().then((arr: number[]) => {
-        //   setLastKey(event.key);
-        // });
+  const arrowButtonsHandler = (direction: string) => {
+    switch (direction) {
+      case "u":
         break;
-      case "ArrowRight":
-        await handleRightArrow();
-        // handleRightArrow().then((arr: number[]) => {
-        //   setLastKey(event.key);
-        // });
-        console.log(event.key);
+      case "l":
+        handleHorizontalDirection(true);
         break;
-      case "ArrowUp":
-        console.log(event.key);
+      case "r":
         break;
-      case "ArrowDown":
-        console.log(event.key);
-        break;
-      default:
+      case "d":
         break;
     }
-    setLastKey(event.key);
   };
 
-  const handleLeftArrow = async () => {
-    const newGameArray: number[] = [...gameArray];
+  const handleHorizontalDirection = (isLeft: boolean) => {
+    const copyGameArray: number[] = [...gameArray];
 
-    const lastRowIndex: number = newGameArray.length - 4;
-    const nonZeroIndices = [];
-    for (let i: number = lastRowIndex; i < lastRowIndex + 4; i++) {
-      if (newGameArray[i] !== 0) nonZeroIndices.push(i);
-    }
+    const chunkedArray: number[][] = copyGameArray.reduce(
+      (preVal: number[][], currVal: number, i: number) => {
+        const chunk: number = Math.floor(i / 4);
+        preVal[chunk] = (preVal[chunk] || []).concat(currVal);
+        return preVal;
+      },
+      []
+    );
 
-    nonZeroIndices.sort().forEach((index: number) => {
-      let targetIndex: number = lastRowIndex;
-      while (newGameArray[targetIndex] !== 0) targetIndex++;
-      newGameArray[targetIndex] = newGameArray[index];
-      newGameArray[index] = 0;
-    });
+    const arr1: number[] = chunkedArray[0];
+    const arr2: number[] = chunkedArray[1];
+    const arr3: number[] = chunkedArray[2];
+    const arr4: number[] = chunkedArray[3];
 
-    for (let i: number = lastRowIndex; i < lastRowIndex + 3; i++) {
-      if (newGameArray[i] === newGameArray[i + 1]) {
-        newGameArray[i] *= 2;
-        newGameArray[i + 1] = 0;
-      }
-    }
-    setGameArray(newGameArray);
+    console.log({ starting: arr1 });
+    console.log(moveAndSum(arr1));
   };
 
-  const handleRightArrow = async () => {
-    const newGameArray: number[] = [...gameArray];
-
-    const lastRowIndex: number = newGameArray.length - 4;
-    const nonZeroIndices = [];
-    for (let i: number = lastRowIndex; i < lastRowIndex + 4; i++) {
-      if (newGameArray[i] !== 0) nonZeroIndices.push(i);
-    }
-
-    nonZeroIndices.sort().forEach((index: number) => {
-      let targetIndex: number = lastRowIndex + 3;
-      while (newGameArray[targetIndex] !== 0) targetIndex--;
-      newGameArray[targetIndex] = newGameArray[index];
-      newGameArray[index] = 0;
-    });
-
-    for (let i: number = lastRowIndex + 2; i >= lastRowIndex; i--) {
-      if (newGameArray[i] === newGameArray[i - 1]) {
-        newGameArray[i] *= 2;
-        newGameArray[i - 1] = 0;
+  const moveAndSum = (arr: number[]) => {
+    arr.reverse();
+    let i = 0;
+    while (i < arr.length - 1) {
+      // Find the next non-zero element
+      while (arr[i] === 0 && i < arr.length - 1) {
+        i++;
       }
+      // If the next element is a zero, move the current non-zero value to it
+      if (arr[i] !== 0 && arr[i + 1] === 0) {
+        arr[i + 1] = arr[i];
+        arr[i] = 0;
+      } else if (arr[i] === arr[i + 1]) {
+        // If the current and next elements are equal
+        arr[i + 1] = arr[i] + arr[i + 1]; // Add them together
+        arr[i] = 0; // Set the current element to 0
+      }
+      i++; // Move to the next element
     }
-
-    setGameArray(newGameArray);
+    return arr.reverse();
   };
 
   return (
@@ -148,6 +113,72 @@ function App() {
             </div>
           );
         })}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          maxWidth: "20%",
+          alignItems: "center",
+          fontSize: 32,
+          paddingTop: 10,
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "lightgrey",
+            width: "15%",
+            padding: 5,
+            textAlign: "center",
+          }}
+        >
+          &#8593;
+          {/* UP */}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: 10,
+            paddingTop: 10,
+            width: "100%",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "lightgrey",
+              width: "15%",
+              padding: 5,
+              textAlign: "center",
+            }}
+            onClick={() => arrowButtonsHandler("l")}
+          >
+            &#8592;
+            {/* LEFT */}
+          </div>
+          <div
+            style={{
+              backgroundColor: "lightgrey",
+              width: "15%",
+              padding: 5,
+              textAlign: "center",
+            }}
+          >
+            &#8595;
+            {/* DOWN */}
+          </div>
+          <div
+            style={{
+              backgroundColor: "lightgrey",
+              width: "15%",
+              padding: 5,
+              textAlign: "center",
+            }}
+          >
+            &#8594;
+          </div>
+        </div>
       </div>
     </div>
   );
