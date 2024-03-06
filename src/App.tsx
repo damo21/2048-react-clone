@@ -215,7 +215,7 @@ function App() {
               <div
                 key={`div_${i}`}
                 className={`bg-gray-200 py-12 px-16 text-center text-[28px] rounded font-bold`}
-                style={{ backgroundColor: `${num === 0 ? `transparent` : getColorBetween(num, `#FFFFCC`, `#FF6600`)}` }}
+                style={{ backgroundColor: `${num === 0 ? `#149eca` : getColorBetween(num, `#FFFFCC`, `#FF6600`)}` }}
               >
                 {num === 0 ? "" : num}
               </div>
