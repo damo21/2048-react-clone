@@ -44,7 +44,7 @@ function App() {
   };
 
   const handleHorizontalDirection = (isLeft: boolean) => {
-    const copyGameArray: number[] = [...gameArray];
+    const copyGameArray: number[] = gameArray;
 
     const chunkedArray: number[][] = copyGameArray.reduce(
       (preVal: number[][], currVal: number, i: number) => {
@@ -55,36 +55,49 @@ function App() {
       []
     );
 
-    const arr1: number[] = chunkedArray[0];
-    const arr2: number[] = chunkedArray[1];
-    const arr3: number[] = chunkedArray[2];
-    const arr4: number[] = chunkedArray[3];
+    const processedChunks: number[][] = chunkedArray.map((arr: number[]) => {
+      return moveValuesHorizontally(arr);
+    });
 
-    console.log({ starting: arr1 });
-    console.log(moveAndSum(arr1));
+    const mergedArray: number[] = [].concat(...processedChunks as any);
+
+    setGameArray(mergedArray);
   };
 
-  const moveAndSum = (arr: number[]) => {
-    arr.reverse();
-    let i = 0;
-    while (i < arr.length - 1) {
-      // Find the next non-zero element
-      while (arr[i] === 0 && i < arr.length - 1) {
-        i++;
+  const moveValuesHorizontally = (arr: number[]): number[] => {
+    for (let i: number = 0; i < arr.length; i++) {
+      const curVal: number = arr[i];
+      if (curVal === 0) continue;
+      let movedBack: number = 0;
+
+      while (movedBack < i) {
+        const checkValToMoveTo: number = arr[(i - 1) - movedBack];
+
+        if (checkValToMoveTo > curVal) break;
+
+        if (checkValToMoveTo === 0) {
+
+          if (movedBack === 0) {
+            arr[i] = 0;
+          } else {
+            arr[(i - movedBack)] = 0;
+          }
+          arr[(i - 1) - movedBack] = curVal;
+
+        } else if (checkValToMoveTo === curVal) {
+          if (movedBack === 0) {
+            arr[i] = 0;
+          } else {
+            arr[(i - movedBack)] = 0;
+          }
+          arr[(i - 1) - movedBack] = checkValToMoveTo + curVal
+        }
+
+        movedBack++;
       }
-      // If the next element is a zero, move the current non-zero value to it
-      if (arr[i] !== 0 && arr[i + 1] === 0) {
-        arr[i + 1] = arr[i];
-        arr[i] = 0;
-      } else if (arr[i] === arr[i + 1]) {
-        // If the current and next elements are equal
-        arr[i + 1] = arr[i] + arr[i + 1]; // Add them together
-        arr[i] = 0; // Set the current element to 0
-      }
-      i++; // Move to the next element
     }
-    return arr.reverse();
-  };
+    return arr;
+  }
 
   return (
     <div className="App">
