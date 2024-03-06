@@ -1,6 +1,9 @@
 // react imports
 import React, { useState, useEffect } from "react";
 
+type RGB = { r: number; g: number; b: number };
+
+
 function App() {
   const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
   const [gameArray, setGameArray] = useState<number[]>([
@@ -8,6 +11,8 @@ function App() {
   ]);
   const [copyGameArray, setCopyGameArray] = useState<number[]>(gameArray)
   const [score, setScore] = useState<number>(0);
+  const [animatedIndices, setAnimatedIndices] = useState<number[]>([]);
+
 
   useEffect(() => {
     if (!hasGameStarted) {
@@ -30,6 +35,17 @@ function App() {
 
     setCopyGameArray(gameArray);
   }, [gameArray]);
+
+  useEffect(() => {
+    if (animatedIndices.length > 0) {
+      const timeoutId = setTimeout(() => {
+        setAnimatedIndices([]);
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [animatedIndices]);
+
 
   const arrowButtonsHandler = (direction: string) => {
 
@@ -170,97 +186,79 @@ function App() {
     return [].concat(...copy as any);
   }
 
+  const getColorBetween = (num: number, startColor: string, endColor: string): string => {
+    const start = hexToRgb(startColor);
+    const end = hexToRgb(endColor);
+    const ratio = num / 516;
+
+    const interpolated: RGB = {
+      r: Math.floor(start.r + (end.r - start.r) * ratio),
+      g: Math.floor(start.g + (end.g - start.g) * ratio),
+      b: Math.floor(start.b + (end.b - start.b) * ratio),
+    };
+
+    return rgbToHex(interpolated);
+  }
+
+  const hexToRgb = (hex: string): RGB => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+      : { r: 0, g: 0, b: 0 };
+  }
+
+  const rgbToHex = (rgb: RGB): string => {
+    return `#${rgb.r.toString(16).padStart(2, '0')}${rgb.g.toString(16).padStart(2, '0')}${rgb.b.toString(16).padStart(2, '0')}`;
+  }
+
+
   return (
-    <div className="App">
-      <header className="App-header" />
-      <div>score: {score}</div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gridTemplateRows: "repeat(4, 1fr)",
-          gap: "1px",
-          maxWidth: "20%",
-        }}
-      >
-        {gameArray.map((num: number, i: number) => {
-          return (
-            <div
-              key={`div_${i}`}
-              style={{
-                backgroundColor: "lightgrey",
-                padding: "30px",
-                textAlign: "center",
-              }}
-            >
-              {num}
-            </div>
-          );
-        })}
-      </div>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          maxWidth: "20%",
-          alignItems: "center",
-          fontSize: 32,
-          paddingTop: 10,
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "lightgrey",
-            width: "15%",
-            padding: 5,
-            textAlign: "center",
-          }}
-          onClick={() => arrowButtonsHandler("u")}
-        >
-          &#8593;
+    <div className="w-full flex flex-col items-center">
+      <div className="flex flex-col items-center max-w-[50%] px-24 pt-10">
+        <div className="w-full text-center text-[26px] text-white">Score: {score}</div>
+        <div className="grid grid-cols-4 grid-rows-4 gap-1 bg-lighterDark p-1 rounded">
+          {gameArray.map((num: number, i: number) => {
+            return (
+              <div
+                key={`div_${i}`}
+                className={`bg-gray-200 py-12 px-16 text-center text-[28px] rounded font-bold`}
+                style={{ backgroundColor: `${num === 0 ? `transparent` : getColorBetween(num, `#FFFFCC`, `#FF6600`)}` }}
+              >
+                {num === 0 ? "" : num}
+              </div>
+            );
+          })}
         </div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 10,
-            paddingTop: 10,
-            width: "100%",
-            justifyContent: "center",
-          }}
-        >
+        <div className="flex flex-col max-w-1/5 items-center text-[48px] pt-2">
           <div
-            style={{
-              backgroundColor: "lightgrey",
-              width: "15%",
-              padding: 5,
-              textAlign: "center",
-            }}
-            onClick={() => arrowButtonsHandler("l")}
+            className="bg-lighterDark w-15 p-1 text-center select-none cursor-pointer rounded text-white "
+            onClick={() => arrowButtonsHandler("u")}
           >
-            &#8592;
+            &#8593;
           </div>
-          <div
-            style={{
-              backgroundColor: "lightgrey",
-              width: "15%",
-              padding: 5,
-              textAlign: "center",
-            }}
-            onClick={() => arrowButtonsHandler("d")}
-          >
-            &#8595;
-          </div>
-          <div
-            style={{
-              backgroundColor: "lightgrey",
-              width: "15%",
-              padding: 5,
-              textAlign: "center",
-            }}
-            onClick={() => arrowButtonsHandler("r")}
-          >
-            &#8594;
+          <div className="flex gap-2 justify-center pt-2.5 w-full">
+            <div
+              className="bg-lighterDark w-15 p-1 text-center select-none cursor-pointer rounded text-white"
+              onClick={() => arrowButtonsHandler("l")}
+            >
+              &#8592;
+            </div>
+            <div
+              className="bg-lighterDark w-15 p-1 text-center select-none cursor-pointer rounded text-white"
+              onClick={() => arrowButtonsHandler("d")}
+            >
+              &#8595;
+            </div>
+            <div
+              className="bg-lighterDark w-15 p-1 text-center select-none cursor-pointer rounded text-white"
+              onClick={() => arrowButtonsHandler("r")}
+            >
+              &#8594;
+            </div>
           </div>
         </div>
       </div>
