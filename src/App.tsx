@@ -36,17 +36,6 @@ function App() {
     setCopyGameArray(gameArray);
   }, [gameArray]);
 
-  useEffect(() => {
-    if (animatedIndices.length > 0) {
-      const timeoutId = setTimeout(() => {
-        setAnimatedIndices([]);
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [animatedIndices]);
-
-
   const arrowButtonsHandler = (direction: string) => {
 
     let merge: number[][] | null;
