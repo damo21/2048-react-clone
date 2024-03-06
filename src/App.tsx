@@ -32,33 +32,42 @@ function App() {
   }, [gameArray]);
 
   const arrowButtonsHandler = (direction: string) => {
+
+    let merge: number[][] | null;
+
     switch (direction) {
       case "u":
+        merge = handleMerges(true, splitArrayIntoVerticalChunks(gameArray));
+        handleGame(mergeVerticalChunksIntoArray(merge));
         break;
       case "l":
-        handleHorizontalDirection(true);
-        break;
-      case "r":
-        handleHorizontalDirection(false);
+        merge = handleMerges(true, splitArrayIntoHorizontalChunks(gameArray));
+        handleGame([].concat(...merge! as any));
         break;
       case "d":
+        merge = handleMerges(false, splitArrayIntoVerticalChunks(gameArray));
+        handleGame(mergeVerticalChunksIntoArray(merge));
+        break;
+      case "r":
+        merge = handleMerges(false, splitArrayIntoHorizontalChunks(gameArray));
+        handleGame([].concat(...merge! as any));
         break;
     }
   };
 
-  const handleHorizontalDirection = (isLeft: boolean) => {
-    const splitChunks: number[][] = splitArrayIntoHorizontalChunks(gameArray);
+  const handleMerges = (isLeft: boolean, splitChunks: number[][]): number[][] => {
 
-    const processedChunks: number[][] = splitChunks.map((arr: number[]) => {
+    return splitChunks.map((arr: number[]) => {
       return isLeft ? moveArrayValues(arr) : moveArrayValues(arr.reverse()).reverse();
     });
-    const mergedArray: number[] = [].concat(...processedChunks as any);
+  };
 
+  const handleGame = (mergedArray: number[]) => {
     if (!compareArrays(mergedArray, copyGameArray)) {
       const finalArr: number[] = spawnNewNumber(mergedArray);
       setGameArray(finalArr);
     }
-  };
+  }
 
   const moveArrayValues = (arr: number[]): number[] => {
 
@@ -93,6 +102,37 @@ function App() {
       },
       []
     );
+  }
+
+  const splitArrayIntoVerticalChunks = (arr: number[]): number[][] => {
+    const result: number[][] = [];
+    const numOfSubArrays: number = arr.length / 4;
+
+    for (let i: number = 0; i < 4; i++) {
+      const subArray: number[] = [];
+      for (let j = 0; j < numOfSubArrays; j++) {
+        subArray.push(arr[j * 4 + i]);
+      }
+      result.push(subArray);
+    }
+
+    return result;
+  }
+
+  const mergeVerticalChunksIntoArray = (arrays: number[][]): number[] => {
+    const result: number[] = [];
+    const maxLength: number = Math.max(...arrays.map(arr => arr.length));
+
+    for (let i: number = 0; i < maxLength; i++) {
+      for (const array of arrays) {
+        if (i < array.length) {
+          result.push(array[i]);
+        } else {
+          result.push(0);
+        }
+      }
+    }
+    return result;
   }
 
   const compareArrays = (a: number[], b: number[]): boolean => {
@@ -175,9 +215,9 @@ function App() {
             padding: 5,
             textAlign: "center",
           }}
+          onClick={() => arrowButtonsHandler("u")}
         >
           &#8593;
-          {/* UP */}
         </div>
         <div
           style={{
@@ -199,7 +239,6 @@ function App() {
             onClick={() => arrowButtonsHandler("l")}
           >
             &#8592;
-            {/* LEFT */}
           </div>
           <div
             style={{
@@ -208,9 +247,9 @@ function App() {
               padding: 5,
               textAlign: "center",
             }}
+            onClick={() => arrowButtonsHandler("d")}
           >
             &#8595;
-            {/* DOWN */}
           </div>
           <div
             style={{
