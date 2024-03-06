@@ -37,6 +37,7 @@ function App() {
         handleHorizontalDirection(true);
         break;
       case "r":
+        handleHorizontalDirection(false);
         break;
       case "d":
         break;
@@ -44,9 +45,7 @@ function App() {
   };
 
   const handleHorizontalDirection = (isLeft: boolean) => {
-    const copyGameArray: number[] = gameArray;
-
-    const chunkedArray: number[][] = copyGameArray.reduce(
+    const chunkedArray: number[][] = gameArray.reduce(
       (preVal: number[][], currVal: number, i: number) => {
         const chunk: number = Math.floor(i / 4);
         preVal[chunk] = (preVal[chunk] || []).concat(currVal);
@@ -56,7 +55,7 @@ function App() {
     );
 
     const processedChunks: number[][] = chunkedArray.map((arr: number[]) => {
-      return moveValuesHorizontally(arr);
+      return isLeft ? moveValuesHorizontally(arr) : moveValuesHorizontally(arr.reverse()).reverse();
     });
 
     const mergedArray: number[] = [].concat(...processedChunks as any);
@@ -65,13 +64,18 @@ function App() {
   };
 
   const moveValuesHorizontally = (arr: number[]): number[] => {
+
     for (let i: number = 0; i < arr.length; i++) {
       const curVal: number = arr[i];
       if (curVal === 0) continue;
       let movedBack: number = 0;
 
-      while (movedBack < i) {
+      while (movedBack <= i) {
         const checkValToMoveTo: number = arr[(i - 1) - movedBack];
+
+        console.log({ curVal });
+        console.log({ i });
+        console.log({ movedBack });
 
         if (checkValToMoveTo > curVal) break;
 
@@ -96,6 +100,7 @@ function App() {
         movedBack++;
       }
     }
+    console.log(arr);
     return arr;
   }
 
@@ -188,6 +193,7 @@ function App() {
               padding: 5,
               textAlign: "center",
             }}
+            onClick={() => arrowButtonsHandler("r")}
           >
             &#8594;
           </div>
